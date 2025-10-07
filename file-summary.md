@@ -1,10 +1,3 @@
-# Complete Archimedes Analysis Automation - File Summary
-
-## 📦 All Files You Need
-
-Here's everything I've created for you. Copy each file to your working directory.
-
----
 
 ## File List (7 files total)
 
@@ -12,7 +5,7 @@ Here's everything I've created for you. Copy each file to your working directory
 - Extends `verificarlo/verificarlo:latest`
 - Installs Python dependencies
 - Adds automation scripts
-- **Status**: Ready to use
+
 
 ### 2. **archimedes_analyzer.py** ⭐
 - Main automation script
@@ -211,9 +204,9 @@ The `ANALYSIS_REPORT.md` systematically answers ALL your research questions:
 - Citation information included
 
 ### ⚡ Flexible Modes
-- **Minimal**: 30-45 minutes, quick validation
-- **Quick**: 3-5 hours, good coverage
-- **Full**: 40-50 hours, comprehensive
+- **Minimal**:  quick validation
+- **Quick**:  good coverage
+- **Full**: comprehensive
 
 ### 🔬 Scientifically Sound
 - Based on Verificarlo tutorial methodology
@@ -344,60 +337,7 @@ If all those work, you're ready to go!
 
 ---
 
-## Common Workflows
 
-### Workflow 1: Beginner (First Time)
-```bash
-./build_image.sh                    # One time setup
-./start_analysis_container.sh       # Start container
-python3 archimedes_analyzer.py --minimal    # 30 min test
-python3 visualize_results.py        # Generate plots
-exit
-cat analysis_results/ANALYSIS_REPORT.md
-```
-
-### Workflow 2: Researcher (Overnight Run)
-```bash
-./start_analysis_container.sh
-nohup python3 archimedes_analyzer.py --quick > analysis.log 2>&1 &
-# Detach: Ctrl+P, Ctrl+Q
-# Next morning...
-docker attach verificarlo-analysis-session
-python3 visualize_results.py
-exit
-```
-
-### Workflow 3: Power User (Custom Analysis)
-```bash
-./start_analysis_container.sh
-python3
->>> from archimedes_analyzer import ArchimedesAnalyzer
->>> a = ArchimedesAnalyzer(quick_mode=True)
->>> # Run specific experiments
->>> for var in ['ti', 'tii', 's']:
-...     result = a.run_single_experiment(f"test_{var}", [var], 'O3', False)
-...     a.results['experiments'].append(result)
->>> a.save_results()
->>> exit()
-python3 visualize_results.py
-exit
-```
-
----
-
-## Troubleshooting Quick Reference
-
-| Problem | Solution |
-|---------|----------|
-| Can't find archimedes.c | Check with `find / -name "archimedes.c" 2>/dev/null` |
-| Build fails | Try `docker build --no-cache -t verificarlo-analysis .` |
-| Container won't start | `docker rm -f verificarlo-analysis-session` |
-| Permission denied | `sudo chown -R $USER:$USER analysis_results/` |
-| Analysis interrupted | Just restart - results are saved incrementally |
-| No plots generated | Check `MPLBACKEND=Agg` is set |
-| Delta-Debug timeout | Normal for complex cases, results still valid |
-
----
 
 ## Next Steps After First Run
 
