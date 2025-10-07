@@ -1,13 +1,13 @@
 
 ## File List (7 files total)
 
-### 1. **Dockerfile** ⭐
+### 1. **Dockerfile** 
 - Extends `verificarlo/verificarlo:latest`
 - Installs Python dependencies
 - Adds automation scripts
 
 
-### 2. **archimedes_analyzer.py** ⭐
+### 2. **archimedes_analyzer.py** 
 - Main automation script
 - Handles precision variations, compiler flags, Delta-Debug
 - Three modes: full, quick, minimal
@@ -15,13 +15,13 @@
 - Saves results to `/workdir/analysis_results`
 - **Status**: Container-compatible, ready to use
 
-### 3. **visualize_results.py** ⭐
+### 3. **visualize_results.py** 
 - Generates 5 comprehensive plots
 - Creates markdown report answering all research questions
 - Exports CSV for further analysis
 - **Status**: Container-compatible, ready to use
 
-### 4. **start_analysis_container.sh** ⭐
+### 4. **start_analysis_container.sh** 
 - User-friendly launcher script
 - Mounts current directory to `/workdir`
 - Starts interactive bash session
