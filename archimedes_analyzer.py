@@ -37,21 +37,21 @@ class ArchimedesAnalyzer:
                     source_file = path
                     break
             
-            # if source_file is None:
-            #     # Try to find it anywhere
-            #     import subprocess
-            #     try:
-            #         result = subprocess.run(
-            #             ['find', '/', '-name', 'archimedes.c', '-type', 'f'],
-            #             capture_output=True, text=True, timeout=10
-            #         )
-            #         if result.returncode == 0 and result.stdout.strip():
-            #             found_paths = result.stdout.strip().split('\n')
-            #             if found_paths:
-            #                 source_file = found_paths[0]
-            #                 print(f"⚠️  Found archimedes.c via search: {source_file}")
-            #     except:
-            #         pass
+            if source_file is None:
+                # Try to find it anywhere
+                import subprocess
+                try:
+                    result = subprocess.run(
+                        ['find', '/', '-name', 'archimedes.c', '-type', 'f'],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        found_paths = result.stdout.strip().split('\n')
+                        if found_paths:
+                            source_file = found_paths[0]
+                            print(f"⚠️  Found archimedes.c via search: {source_file}")
+                except:
+                    pass
             
             if source_file is None:
                 raise FileNotFoundError(
@@ -182,16 +182,35 @@ class ArchimedesAnalyzer:
         if use_fastmath:
             flags.append('-ffast-math')
         
+        # CRITICAL: Add --ddebug and -g for Delta-Debug support
+        # --ddebug: Enables verificarlo debug mode for vfc_ddebug
+        # -g: Generates debug symbols with line number information
+        flags.extend(['--ddebug', '-g'])
+        
+        # Ensure paths are strings (not Path objects)
+        source_path = str(source_path)
+        output_binary = str(output_binary)
+        
         cmd = ['verificarlo'] + flags + [source_path, '-o', output_binary, '-lm']
+        
+        print(f"  Compiling: {' '.join(cmd)}")
         
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             if result.returncode != 0:
-                print(f"Compilation failed: {result.stderr}")
+                print(f"  ❌ Compilation failed: {result.stderr}")
                 return False
+            
+            # Verify the binary was created and is executable
+            if not Path(output_binary).exists():
+                print(f"  ❌ Binary not created: {output_binary}")
+                return False
+            
+            print(f"  ✅ Compilation successful")
             return True
+            
         except subprocess.TimeoutExpired:
-            print(f"Compilation timeout for {output_binary}")
+            print(f"  ❌ Compilation timeout for {output_binary}")
             return False
     
     def run_delta_debug(self, binary_path: str, dd_mode: str, 
@@ -199,40 +218,75 @@ class ArchimedesAnalyzer:
         """
         Run Delta-Debug analysis and parse results
         """
+        # Ensure paths are absolute
+        binary_path = Path(binary_path).resolve()
+        work_dir = Path(work_dir).resolve()
+        
+        # Check if the binary exists
+        if not binary_path.exists():
+            print(f"    ❌ Binary not found: {binary_path}")
+            return {
+                'mode': dd_mode,
+                'unstable_lines': [],
+                'success': False,
+                'output': f'Binary not found: {binary_path}'
+            }
+        
         # Create ddRun script
         ddrun_path = work_dir / "ddRun"
         with open(ddrun_path, 'w') as f:
             f.write(f"""#!/bin/bash
 OUTPUT_DIR=$1
-{binary_path} > $OUTPUT_DIR/output.txt 2>&1
+{binary_path} > $OUTPUT_DIR/res.dat 2>&1
 """)
         os.chmod(ddrun_path, 0o755)
         
-        # Create ddCmp script
+        # Create ddCmp script (following verificarlo tutorial pattern)
         ddcmp_path = work_dir / "ddCmp"
         with open(ddcmp_path, 'w') as f:
-            f.write("""#!/bin/bash
-REF_DIR=$1
-CUR_DIR=$2
+            f.write("""#!/usr/bin/env python3
+#
+# ddCmp: compares the reference run and a current run, returns with success if
+# there is no numerical deviation higher than 1e-6.
+#
+# The first argument is the folder with the reference output, the second
+# argument is the folder with the current output.
 
-# Compare outputs - if they differ significantly, return error
-REF_VAL=$(cat $REF_DIR/output.txt | tail -1)
-CUR_VAL=$(cat $CUR_DIR/output.txt | tail -1)
-
-# Simple comparison - you may want to make this more sophisticated
-python3 -c "
 import sys
+import numpy as np
+
+MAX_DEVIATION = 1e-6
+REFDIR = sys.argv[1]
+CURDIR = sys.argv[2]
+
+def read_output(DIR):
+    with open("{}/res.dat".format(DIR)) as f:
+        # Read the last line which should contain the final pi value
+        lines = f.read().strip().split('\\n')
+        return float(lines[-1])
+
 try:
-    ref = float('$REF_VAL')
-    cur = float('$CUR_VAL')
-    # Check if standard deviation indicates instability
-    # This is simplified - adjust threshold as needed
-    if abs(cur - ref) / abs(ref) > 0.01:  # 1% difference
-        sys.exit(1)
-    sys.exit(0)
-except:
+    # Read reference and current outputs
+    ref = read_output(REFDIR)
+    cur = read_output(CURDIR)
+    
+    # Compute the deviation using Monte Carlo Arithmetic formula
+    # deviation = sigma / |mu|
+    deviation = np.std([ref, cur]) / np.abs(np.mean([ref, cur]))
+    
+    # Write log to CURDIR/res.stat
+    with open("{}/res.stat".format(CURDIR), 'w') as f:
+        f.write("reference = {} current = {} deviation = {}\\n".format(
+            ref, cur, deviation))
+    
+    # Fail if the deviation is higher than MAX_DEVIATION
+    sys.exit(0 if deviation < MAX_DEVIATION else 1)
+    
+except Exception as e:
+    # If there's an error reading or parsing, log it and fail
+    with open("{}/res.stat".format(CURDIR), 'w') as f:
+        f.write("ERROR: {}\\n".format(str(e)))
     sys.exit(1)
-"
 """)
         os.chmod(ddcmp_path, 0o755)
         
@@ -246,25 +300,49 @@ except:
             if dd_dir.exists():
                 shutil.rmtree(dd_dir)
             
+            # Run vfc_ddebug from the work directory
+            # Must use relative paths for ddRun and ddCmp
             result = subprocess.run(
-                ['vfc_ddebug', str(ddrun_path), str(ddcmp_path)],
-                cwd=work_dir,
+                ['vfc_ddebug', './ddRun', './ddCmp'],
+                cwd=str(work_dir),
                 env=env,
                 capture_output=True,
                 text=True,
                 timeout=600
             )
             
+            # Check if Delta-Debug succeeded
+            if result.returncode != 0 or "failed" in result.stdout.lower():
+                print(f"    ⚠️  Delta-Debug ({dd_mode}) failed or returned error")
+                print(f"    Return code: {result.returncode}")
+                if result.stdout:
+                    print(f"    stdout: {result.stdout[:300]}")
+                if result.stderr:
+                    print(f"    stderr: {result.stderr[:300]}")
+                
+                return {
+                    'mode': dd_mode,
+                    'unstable_lines': [],
+                    'success': False,
+                    'output': result.stdout + "\n" + result.stderr
+                }
+            
             # Parse Delta-Debug results
             unstable_lines = self.parse_dd_results(dd_dir)
+            
+            if unstable_lines:
+                print(f"    ✅ Found {len(unstable_lines)} unstable line(s): {unstable_lines}")
+            else:
+                print(f"    ℹ️  No unstable lines detected (code is stable)")
             
             return {
                 'mode': dd_mode,
                 'unstable_lines': unstable_lines,
-                'success': result.returncode == 0,
+                'success': True,
                 'output': result.stdout
             }
         except subprocess.TimeoutExpired:
+            print(f"    ⚠️  Delta-Debug ({dd_mode}) timed out")
             return {
                 'mode': dd_mode,
                 'unstable_lines': [],
@@ -272,6 +350,9 @@ except:
                 'output': 'Timeout'
             }
         except Exception as e:
+            print(f"    ⚠️  Delta-Debug ({dd_mode}) exception: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 'mode': dd_mode,
                 'unstable_lines': [],
@@ -279,21 +360,40 @@ except:
                 'output': str(e)
             }
     
-    def parse_dd_results(self, dd_dir: Path) -> List[str]:
+    def parse_dd_results(self, dd_dir: Path) -> List[int]:
         """
         Parse Delta-Debug output to extract unstable lines
         """
         unstable_lines = []
         
-        # Check rddmin-cmp/dd.line.exclude
-        exclude_file = dd_dir / "rddmin-cmp" / "dd.line.exclude"
-        if exclude_file.exists():
-            with open(exclude_file, 'r') as f:
-                for line in f:
-                    # Format: 0x0000000000400e5c: archimedes at archimedes.c:16
-                    match = re.search(r'archimedes\.c:(\d+)', line)
-                    if match:
-                        unstable_lines.append(int(match.group(1)))
+        # Delta-Debug can create results in multiple locations
+        # Try rddmin-cmp/dd.line.exclude first (union of all minimized sets)
+        possible_locations = [
+            dd_dir / "rddmin-cmp" / "dd.line.exclude",
+            dd_dir / "ddmin0" / "dd.line.include",
+            dd_dir / "ddmin1" / "dd.line.include",
+            dd_dir / "dd.line.exclude",  # Sometimes at root
+        ]
+        
+        for exclude_file in possible_locations:
+            if exclude_file.exists():
+                print(f"    📋 Found DD results: {exclude_file}")
+                with open(exclude_file, 'r') as f:
+                    for line in f:
+                        # Format: 0x0000000000400e5c: archimedes at archimedes.c:16
+                        match = re.search(r'archimedes\.c:(\d+)', line)
+                        if match:
+                            line_num = int(match.group(1))
+                            if line_num not in unstable_lines:
+                                unstable_lines.append(line_num)
+        
+        if not unstable_lines and dd_dir.exists():
+            # Debug: list what files actually exist
+            print(f"    ⚠️  No unstable lines found in {dd_dir}")
+            print(f"    Directory contents:")
+            for item in dd_dir.rglob("*"):
+                if item.is_file():
+                    print(f"      - {item.relative_to(dd_dir)}")
         
         return sorted(set(unstable_lines))
     
@@ -580,11 +680,13 @@ def main():
                        help='Minimal mode: only baseline configs (~30 minutes)')
     parser.add_argument('--parallel', type=int, default=1,
                        help='Number of parallel workers (default: 1)')
+    parser.add_argument('--single-experiment', action='store_true')
     
     args = parser.parse_args()
     
     analyzer = ArchimedesAnalyzer(source_file=args.source, quick_mode=args.quick)
     
+
     if args.minimal:
         print("\n⚡⚡ MINIMAL MODE ⚡⚡")
         print("Testing only critical configurations:\n")
