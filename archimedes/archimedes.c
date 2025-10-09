@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <time.h>
 
-
-
 /* Archimedes method for computing PI using circumscribed polygons */
 double archimedes(int N) {
   double ti, tii, fact, res;
