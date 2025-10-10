@@ -21,14 +21,70 @@ import shutil
 
 class AnalysisConfig:
     """Configuration for the analysis run"""
-    def __init__(self, mode='full'):
+    def __init__(self, mode='full', variable: Optional[str]=None):
         self.mode = mode
+
+        self.ti_combinations = [
+            #ti combinations
+            ("ti_tii_float", ['ti', 'tii']),
+            ("ti_s_float", ['ti', 's']),
+            ("ti_fact_float", ['ti', 'fact']),
+            ("ti_res_float", ['ti', 'res'])]
         
+        self.tii_combinations = [
+            #tii combinations
+            ("tii_ti_float", ['tii', 'ti']),
+            ("tii_s_float", ['tii', 's']),
+            ("tii_fact_float", ['tii', 'fact']),
+            ("tii_res_float", ['tii', 'res'])
+        ]
+        self.res_combinations = [
+        #res combinations
+            ("res_ti_float", ['res', 'ti']),
+            ("res_tii_float", ['res', 'tii']),
+            ("res_fact_float", ['res', 'fact']),
+            ("res_s_float", ['res', 's']),
+        ]
+        self.s_combinations = [
+            #s combinations
+            ("s_ti_float", ['s', 'ti']),
+            ("s_tii_float", ['s', 'tii']),
+            ("s_fact_float", ['s', 'fact']),
+            ("s_res_float", ['s', 'res'])
+        ]
+        self.fact_combinations = [
+        ("fact_ti_float", ['fact', 'ti']),
+            ("fact_tii_float", ['fact', 'tii']),
+            ("fact_s_float", ['fact', 's']),
+            ("fact_res_float", ['fact', 'res'])
+        ]
+
         if mode == 'minimal':
             self.opt_levels = ['O0']
             self.fastmath_options = [False]
             self.mca_samples = 50
             self.configs = [("all_double", [])]
+        
+        if mode == 'single':
+            self.opt_levels = ['O0']
+            self.fastmath_options = [False]
+            self.mca_samples = 50
+            self.configs = []
+            if mode == 'single':
+ 
+                if variable == 'ti':
+                    self.configs.extend(self.ti_combinations)
+                elif variable == 'tii':
+                    self.configs.extend(self.tii_combinations)
+                elif variable == 'res':
+                    self.configs.extend(self.res_combinations)
+                elif variable == 's':
+                    self.configs.extend(self.s_combinations)
+                elif variable == 'fact':
+                    self.configs.extend(self.fact_combinations)
+                else:
+                    raise ValueError(f"Invalid variable name: {variable}. Must be one of: ti, tii, res, s, fact")
+    
         else:  # full
             self.opt_levels = ['O0', 'O1', 'O2', 'O3']
             self.fastmath_options = [False, True]
@@ -48,37 +104,11 @@ class AnalysisConfig:
             configs.append((f"only_{var}_float", [var]))
         
         # Two at a time
-        configs.extend([
-            #ti combinations
-            ("ti_tii_float", ['ti', 'tii']),
-            ("ti_s_float", ['ti', 's']),
-            ("ti_fact_float", ['ti', 'fact']),
-            ("ti_res_float", ['ti', 'res']),
-
-            #tii combinations
-            ("tii_ti_float", ['tii', 'ti']),
-            ("tii_s_float", ['tii', 's']),
-            ("tii_fact_float", ['tii', 'fact']),
-            ("tii_res_float", ['tii', 'res']),
-
-            #fact combinations
-            ("fact_ti_float", ['fact', 'ti']),
-            ("fact_tii_float", ['fact', 'tii']),
-            ("fact_s_float", ['fact', 's']),
-            ("fact_res_float", ['fact', 'res']),
-
-            #res combinations
-            ("res_ti_float", ['res', 'ti']),
-            ("res_tii_float", ['res', 'tii']),
-            ("res_fact_float", ['res', 'fact']),
-            ("res_s_float", ['res', 's']),
-
-            #s combinations
-            ("s_ti_float", ['s', 'ti']),
-            ("s_tii_float", ['s', 'tii']),
-            ("s_fact_float", ['s', 'fact']),
-            ("s_res_float", ['s', 'res'])
-        ])
+        configs.extend([self.fact_combinations,
+                        self.res_combinations,
+                        self.s_combinations,
+                        self.ti_combinations,
+                        self.tii_combinations])
         return configs
 
 
@@ -446,15 +476,6 @@ def run_single_experiment(config_name: str,
     
     result['delta_debug'] = dd_results
     
-    # # Run MCA
-    # print(f"  Running MCA analysis ({mca_samples} samples)...")
-    # precision = 24 if float_vars else 53
-    # mca_result = run_mca_analysis(binary_path, precision, mca_samples)
-    # result['mca_analysis'] = mca_result
-    
-    # if mca_result['significant_digits']:
-    #     print(f"  ✓ Significant digits: {mca_result['significant_digits']:.2f}")
-    
     result['status'] = 'success'
     return result
 
@@ -463,11 +484,11 @@ def run_single_experiment(config_name: str,
 # MAIN EXECUTION
 # ============================================================================
 
-def run_analysis(mode='full', output_dir='analysis_results'):
+def run_analysis(mode='full', output_dir='analysis_results', variable: Optional[str]=None):
     """Main analysis function"""
     
     # Setup
-    config = AnalysisConfig(mode)
+    config = AnalysisConfig(mode, variable)
     
     if not str(output_dir).startswith('/workdir'):
         output_dir = f"/workdir/{output_dir}"
@@ -515,11 +536,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['minimal','full'], default='full')
     parser.add_argument('--minimal', action='store_true')
+    parser.add_argument('variable', nargs='?', default=None,
+                       help='Variable name for single variable analysis')
     
     args = parser.parse_args()
     
     if args.minimal:
         mode = 'minimal'
+    elif args.variable is not None:
+        mode = 'single'
+        run_analysis(mode=mode, variable=args.variable)
     else:
         mode = args.mode
     

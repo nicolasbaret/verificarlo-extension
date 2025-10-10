@@ -4,7 +4,10 @@
 
 /* Archimedes method for computing PI using circumscribed polygons */
 double archimedes(int N) {
-  double ti, tii, fact, res;
+  double ti;
+  double tii;
+  double fact;
+  double res;
   int i;
 
   /* Print header */
