@@ -87,7 +87,7 @@ def main():
         dd_workspace.mkdir(parents=True, exist_ok=True)
         
         # Use stricter threshold for floats
-        threshold = 1e-2 if modified_vars else 1e-6
+        threshold = 1e-6
         
         create_ddrun_script(dd_workspace, binary_path)
         create_ddcmp_script(dd_workspace, threshold)
@@ -114,7 +114,7 @@ def main():
         }, f, indent=2)
     
     print(f"\n✓ DD setup complete: {len(dd_setups)} configuration(s)")
-    print(f"✓ Manifest: {manifest_path}")
+    print(f"✓ Manifest for delta debug setup: {manifest_path}")
 
 
 if __name__ == '__main__':

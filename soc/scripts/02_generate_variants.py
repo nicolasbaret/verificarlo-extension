@@ -102,7 +102,7 @@ def main():
         }, f, indent=2)
     
     print(f"\n✓ Generated {len(variants)} variant(s)")
-    print(f"✓ Manifest: {manifest_out}")
+    print(f"✓ Manifest for variant generation: {manifest_out}")
 
 
 if __name__ == '__main__':

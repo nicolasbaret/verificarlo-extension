@@ -10,26 +10,6 @@ echo "║     Building Verificarlo Analysis Docker Image             ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Check if required files exist
-echo "📋 Checking required files..."
-REQUIRED_FILES=("Dockerfile" "archimedes_analyzer.py" "visualize_results.py")
-MISSING=0
-
-for file in "${REQUIRED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        echo "   ✅ $file"
-    else
-        echo "   ❌ $file (missing!)"
-        MISSING=1
-    fi
-done
-
-if [ $MISSING -eq 1 ]; then
-    echo ""
-    echo "❌ Missing required files. Please ensure all files are in the current directory."
-    exit 1
-fi
-
 echo ""
 echo "🔨 Building Docker image: $IMAGE_NAME"
 echo "   Base: verificarlo/verificarlo:latest"

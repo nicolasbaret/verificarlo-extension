@@ -61,6 +61,16 @@ def main():
                 config_id = f"{variant_name}_{opt_level}_{fastmath_str}"
                 print(f"   [{current:3d}/{total_configs}] {config_id}...", end=' ')
                 
+                # Build the command string for display
+                flags = [f'-{opt_level}', '-g', '--ddebug']
+                if use_fastmath:
+                    flags.append('-ffast-math')
+                flags.extend(EXTRA_FLAGS)
+                
+                cmd_str = f"verificarlo {' '.join(flags)} {source_path} -o {binary_path}"
+                print(f"\n      $ {cmd_str}")
+                print(f"      ", end='')
+                
                 config = CompilationConfig(
                     source_path=source_path,
                     output_path=binary_path,
@@ -100,7 +110,7 @@ def main():
         }, f, indent=2)
     
     print(f"\n✓ Compilation: {success_count}/{total_configs} successful")
-    print(f"✓ Manifest: {manifest_path}")
+    print(f"✓ Manifest for variant compilation: {manifest_path}")
 
 
 if __name__ == '__main__':
