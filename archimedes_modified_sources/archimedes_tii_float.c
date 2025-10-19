@@ -5,7 +5,7 @@
 /* Archimedes method for computing PI using circumscribed polygons */
 double archimedes(int N) {
   double ti;
-  double tii;
+  float tii;
   double fact;
   double res;
   int i;
@@ -17,7 +17,6 @@ double archimedes(int N) {
   fact = 1;
   for (i = 1; i <= N; i++) {
     double s = sqrt(ti * ti + 1);
-    printf("%.15e\n", ti);
     tii = (s - 1) / ti;
     ti = tii;
     fact *= 2;

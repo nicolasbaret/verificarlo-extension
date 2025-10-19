@@ -1,0 +1,44 @@
+{
+  "description": "Verificarlo Analysis Configuration",
+  
+  "source": {
+    "file": "path/to/source.c",
+    "function": null,
+    "comment": "function: null means analyze entire file"
+  },
+  
+  "variants": {
+    "strategy": "single",
+    "comment": "Strategy options: all, minimal, single, pairs, custom",
+    "custom_combinations": []
+  },
+  
+  "compilation": {
+    "opt_levels": ["O0", "O3"],
+    "fastmath": true,
+    "extra_flags": ["-lm"],
+    "parallel": true,
+    "jobs": 4
+  },
+  
+  "validation": {
+    "program_args": [],
+    "timeout": 10
+  },
+  
+  "delta_debug": {
+    "backends": ["rr", "mca"],
+    "thresholds": {
+      "all_double": 1e-6,
+      "any_float": 1e-2
+    },
+    "timeout": 600,
+    "parallel": true,
+    "jobs": 2
+  },
+  
+  "output": {
+    "directory": "results/auto",
+    "formats": ["json", "markdown", "html"]
+  }
+}

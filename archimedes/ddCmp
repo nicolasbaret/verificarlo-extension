@@ -9,7 +9,7 @@
 import sys
 import numpy as np
 
-MAX_DEVIATION=1e-6
+MAX_DEVIATION=1e-2
 REFDIR=sys.argv[1]
 CURDIR=sys.argv[2]
 

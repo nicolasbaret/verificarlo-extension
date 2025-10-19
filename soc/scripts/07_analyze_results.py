@@ -1,0 +1,662 @@
+#!/usr/bin/env python3
+"""
+Step 7: Analyze and report Delta-Debug results
+"""
+
+import argparse
+import json
+from pathlib import Path
+from collections import defaultdict
+import sys
+
+
+def generate_markdown_report(results_dir: Path, dd_results: dict) -> str:
+    """Generate a markdown report"""
+    
+    report = []
+    report.append("# Verificarlo Analysis Report\n\n")
+    report.append(f"**Results Directory:** `{results_dir}`\n\n")
+    report.append("---\n\n")
+    
+    # Summary
+    report.append("## Summary\n\n")
+    total = len(dd_results['results'])
+    report.append(f"- **Total Configurations Analyzed:** {total}\n")
+    report.append(f"- **Backends Used:** {', '.join(dd_results['backends'])}\n\n")
+    
+    # Count successful DD runs
+    successful_runs = sum(
+        1 for r in dd_results['results']
+        for dr in r['dd_results']
+        if dr['success']
+    )
+    total_runs = total * len(dd_results['backends'])
+    report.append(f"- **Successful DD Runs:** {successful_runs}/{total_runs}\n\n")
+    
+    # Count issues by variable
+    var_issues = defaultdict(int)
+    line_issues = defaultdict(int)
+    
+    for result in dd_results['results']:
+        modified_vars = result.get('modified_vars', [])
+        
+        for dd_result in result['dd_results']:
+            if dd_result['success']:
+                for line in dd_result['unstable_lines']:
+                    line_issues[line] += 1
+                    for var in modified_vars:
+                        var_issues[var] += 1
+    
+    # Most problematic variables
+    if var_issues:
+        report.append("## Most Problematic Variables\n\n")
+        sorted_vars = sorted(var_issues.items(), key=lambda x: x[1], reverse=True)
+        for var, count in sorted_vars[:10]:
+            report.append(f"- **{var}**: {count} unstable configuration(s)\n")
+        report.append("\n")
+    else:
+        report.append("## Most Problematic Variables\n\n")
+        report.append("*No unstable variables found*\n\n")
+    
+    # Most problematic lines
+    if line_issues:
+        report.append("## Most Problematic Lines\n\n")
+        sorted_lines = sorted(line_issues.items(), key=lambda x: x[1], reverse=True)
+        for line, count in sorted_lines[:10]:
+            report.append(f"- **Line {line}**: {count} unstable configuration(s)\n")
+        report.append("\n")
+    else:
+        report.append("## Most Problematic Lines\n\n")
+        report.append("*No unstable lines found*\n\n")
+    
+    # Detailed results table
+    report.append("## Detailed Results\n\n")
+    report.append("| Config | Modified Vars | Opt | Fast-Math | Backend | Unstable Lines |\n")
+    report.append("|--------|---------------|-----|-----------|---------|----------------|\n")
+    
+    for result in dd_results['results']:
+        variant = result['variant_name']
+        vars_str = ', '.join(result['modified_vars']) if result['modified_vars'] else 'baseline'
+        opt = result['opt_level']
+        fastmath = '✓' if result['fastmath'] else '✗'
+        
+        for dd_result in result['dd_results']:
+            backend = dd_result['backend']
+            if dd_result['success']:
+                lines_str = ', '.join(map(str, dd_result['unstable_lines'])) or 'none'
+            else:
+                lines_str = '❌ failed'
+            
+            report.append(f"| {variant} | {vars_str} | {opt} | {fastmath} | {backend} | {lines_str} |\n")
+    
+    report.append("\n")
+    
+    # Key findings
+    report.append("## Key Findings\n\n")
+    
+    # Find configurations with no instability
+    stable_configs = [
+        r for r in dd_results['results']
+        if all(not dr.get('unstable_lines') for dr in r['dd_results'] if dr['success'])
+    ]
+    
+    if stable_configs:
+        report.append(f"### Stable Configurations ({len(stable_configs)})\n\n")
+        for config in stable_configs[:10]:
+            vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+            report.append(f"- `{config['variant_name']}` ({vars_str})\n")
+        report.append("\n")
+    
+    # Find most unstable configurations
+    unstable_configs = sorted(
+        dd_results['results'],
+        key=lambda r: sum(len(dr.get('unstable_lines', [])) for dr in r['dd_results']),
+        reverse=True
+    )
+    
+    if unstable_configs and unstable_configs[0]:
+        total_lines_first = sum(len(dr.get('unstable_lines', [])) for dr in unstable_configs[0]['dd_results'])
+        if total_lines_first > 0:
+            report.append(f"### Most Unstable Configurations\n\n")
+            for config in unstable_configs[:10]:
+                total_lines = sum(len(dr.get('unstable_lines', [])) for dr in config['dd_results'])
+                if total_lines > 0:
+                    vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+                    report.append(f"- `{config['variant_name']}` ({vars_str}): {total_lines} total unstable line detections\n")
+            report.append("\n")
+    
+    report.append("---\n\n")
+    report.append("*Generated by Verificarlo Analysis Framework*\n")
+    
+    return ''.join(report)
+
+
+def generate_html_report(results_dir: Path, dd_results: dict) -> str:
+    """Generate a rich HTML report"""
+    
+    # Count statistics
+    total = len(dd_results['results'])
+    successful_runs = sum(
+        1 for r in dd_results['results']
+        for dr in r['dd_results']
+        if dr['success']
+    )
+    total_runs = total * len(dd_results['backends'])
+    
+    # Count issues
+    var_issues = defaultdict(int)
+    line_issues = defaultdict(int)
+    
+    for result in dd_results['results']:
+        modified_vars = result.get('modified_vars', [])
+        for dd_result in result['dd_results']:
+            if dd_result['success']:
+                for line in dd_result['unstable_lines']:
+                    line_issues[line] += 1
+                    for var in modified_vars:
+                        var_issues[var] += 1
+    
+    # Stable configs
+    stable_configs = [
+        r for r in dd_results['results']
+        if all(not dr.get('unstable_lines') for dr in r['dd_results'] if dr['success'])
+    ]
+    
+    # Unstable configs
+    unstable_configs = sorted(
+        dd_results['results'],
+        key=lambda r: sum(len(dr.get('unstable_lines', [])) for dr in r['dd_results']),
+        reverse=True
+    )
+    
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificarlo Analysis Report</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }}
+        
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }}
+        
+        header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }}
+        
+        header h1 {{
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }}
+        
+        header .subtitle {{
+            opacity: 0.9;
+            font-size: 1.1em;
+        }}
+        
+        .content {{
+            padding: 40px;
+        }}
+        
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }}
+        
+        .stat-card {{
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }}
+        
+        .stat-card h3 {{
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }}
+        
+        .stat-card .value {{
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2d3748;
+        }}
+        
+        section {{
+            margin-bottom: 40px;
+        }}
+        
+        section h2 {{
+            color: #2d3748;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }}
+        
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }}
+        
+        th {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }}
+        
+        td {{
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }}
+        
+        tr:hover {{
+            background: #f7fafc;
+        }}
+        
+        tr:last-child td {{
+            border-bottom: none;
+        }}
+        
+        .badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }}
+        
+        .badge-success {{
+            background: #c6f6d5;
+            color: #22543d;
+        }}
+        
+        .badge-warning {{
+            background: #feebc8;
+            color: #744210;
+        }}
+        
+        .badge-danger {{
+            background: #fed7d7;
+            color: #742a2a;
+        }}
+        
+        .badge-info {{
+            background: #bee3f8;
+            color: #2c5282;
+        }}
+        
+        .list-item {{
+            background: #f7fafc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }}
+        
+        .list-item strong {{
+            color: #667eea;
+        }}
+        
+        .empty-state {{
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-style: italic;
+        }}
+        
+        footer {{
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 40px;
+        }}
+        
+        code {{
+            background: #2d3748;
+            color: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+        
+        .checkmark {{
+            color: #48bb78;
+        }}
+        
+        .crossmark {{
+            color: #f56565;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Verificarlo Analysis Report</h1>
+            <p class="subtitle">Floating-Point Stability Analysis</p>
+        </header>
+        
+        <div class="content">
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Configurations</h3>
+                    <div class="value">{total}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Successful DD Runs</h3>
+                    <div class="value">{successful_runs}/{total_runs}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Backends Used</h3>
+                    <div class="value">{len(dd_results['backends'])}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Stable Configurations</h3>
+                    <div class="value">{len(stable_configs)}</div>
+                </div>
+            </div>
+            
+            <!-- Backends -->
+            <section>
+                <h2>Analysis Backends</h2>
+                <p>"""
+    
+    for backend in dd_results['backends']:
+        html += f'<span class="badge badge-info">{backend}</span> '
+    
+    html += """</p>
+            </section>
+            
+            <!-- Problematic Variables -->
+            <section>
+                <h2>Most Problematic Variables</h2>"""
+    
+    if var_issues:
+        sorted_vars = sorted(var_issues.items(), key=lambda x: x[1], reverse=True)[:10]
+        for var, count in sorted_vars:
+            html += f"""
+                <div class="list-item">
+                    <strong>{var}</strong>: {count} unstable configuration(s)
+                </div>"""
+    else:
+        html += '<div class="empty-state">✓ No unstable variables detected</div>'
+    
+    html += """
+            </section>
+            
+            <!-- Problematic Lines -->
+            <section>
+                <h2>Most Problematic Source Lines</h2>"""
+    
+    if line_issues:
+        sorted_lines = sorted(line_issues.items(), key=lambda x: x[1], reverse=True)[:10]
+        for line, count in sorted_lines:
+            html += f"""
+                <div class="list-item">
+                    Line <code>{line}</code>: {count} unstable detection(s)
+                </div>"""
+    else:
+        html += '<div class="empty-state">✓ No unstable lines detected</div>'
+    
+    html += """
+            </section>
+            
+            <!-- Detailed Results Table -->
+            <section>
+                <h2>Detailed Results</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Configuration</th>
+                                <th>Modified Variables</th>
+                                <th>Opt Level</th>
+                                <th>Fast-Math</th>
+                                <th>Backend</th>
+                                <th>Unstable Lines</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+    
+    for result in dd_results['results']:
+        variant = result['variant_name']
+        vars_str = ', '.join(result['modified_vars']) if result['modified_vars'] else '<em>baseline</em>'
+        opt = result['opt_level']
+        fastmath = '✓' if result['fastmath'] else '✗'
+        
+        for dd_result in result['dd_results']:
+            backend = dd_result['backend']
+            
+            if dd_result['success']:
+                if dd_result['unstable_lines']:
+                    lines_str = ', '.join(map(str, dd_result['unstable_lines']))
+                    badge_class = 'badge-warning'
+                else:
+                    lines_str = 'none'
+                    badge_class = 'badge-success'
+            else:
+                lines_str = 'failed'
+                badge_class = 'badge-danger'
+            
+            html += f"""
+                            <tr>
+                                <td><code>{variant}</code></td>
+                                <td>{vars_str}</td>
+                                <td><span class="badge badge-info">{opt}</span></td>
+                                <td class="{'checkmark' if result['fastmath'] else 'crossmark'}">{fastmath}</td>
+                                <td><span class="badge badge-info">{backend}</span></td>
+                                <td><span class="badge {badge_class}">{lines_str}</span></td>
+                            </tr>"""
+    
+    html += """
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Stable Configurations -->
+            <section>
+                <h2>Stable Configurations</h2>"""
+    
+    if stable_configs:
+        html += f'<p>Found {len(stable_configs)} stable configuration(s):</p>'
+        for config in stable_configs[:10]:
+            vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+            html += f"""
+                <div class="list-item">
+                    <code>{config['variant_name']}</code> — {vars_str}
+                </div>"""
+        if len(stable_configs) > 10:
+            html += f'<p><em>... and {len(stable_configs) - 10} more</em></p>'
+    else:
+        html += '<div class="empty-state">No completely stable configurations found</div>'
+    
+    html += """
+            </section>
+            
+            <!-- Unstable Configurations -->
+            <section>
+                <h2>Most Unstable Configurations</h2>"""
+    
+    unstable_with_issues = [
+        (config, sum(len(dr.get('unstable_lines', [])) for dr in config['dd_results']))
+        for config in unstable_configs
+    ]
+    unstable_with_issues = [(c, count) for c, count in unstable_with_issues if count > 0]
+    
+    if unstable_with_issues:
+        for config, total_lines in unstable_with_issues[:10]:
+            vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+            html += f"""
+                <div class="list-item">
+                    <code>{config['variant_name']}</code> — {vars_str}: <strong>{total_lines}</strong> total unstable line detections
+                </div>"""
+    else:
+        html += '<div class="empty-state">✓ No unstable configurations detected</div>'
+    
+    html += f"""
+            </section>
+        </div>
+        
+        <footer>
+            <p>Generated by <strong>Verificarlo Analysis Framework</strong></p>
+            <p style="margin-top: 5px; font-size: 0.9em;">Results Directory: <code>{results_dir}</code></p>
+        </footer>
+    </div>
+</body>
+</html>"""
+    
+    return html
+
+
+def generate_json_summary(dd_results: dict) -> dict:
+    """Generate a JSON summary"""
+    
+    summary = {
+        'total_configs': len(dd_results['results']),
+        'backends': dd_results['backends'],
+        'variable_instability': {},
+        'line_instability': {},
+        'stable_configs': [],
+        'unstable_configs': []
+    }
+    
+    var_issues = defaultdict(int)
+    line_issues = defaultdict(int)
+    
+    for result in dd_results['results']:
+        modified_vars = result.get('modified_vars', [])
+        total_unstable_lines = 0
+        
+        for dd_result in result['dd_results']:
+            if dd_result['success']:
+                unstable_lines = dd_result.get('unstable_lines', [])
+                total_unstable_lines += len(unstable_lines)
+                
+                for line in unstable_lines:
+                    line_issues[line] += 1
+                    for var in modified_vars:
+                        var_issues[var] += 1
+        
+        config_summary = {
+            'config_id': result['config_id'],
+            'variant_name': result['variant_name'],
+            'modified_vars': modified_vars,
+            'opt_level': result['opt_level'],
+            'fastmath': result['fastmath'],
+            'total_unstable_lines': total_unstable_lines
+        }
+        
+        if total_unstable_lines == 0:
+            summary['stable_configs'].append(config_summary)
+        else:
+            summary['unstable_configs'].append(config_summary)
+    
+    summary['variable_instability'] = dict(var_issues)
+    summary['line_instability'] = dict(line_issues)
+    
+    # Sort unstable configs
+    summary['unstable_configs'].sort(key=lambda x: x['total_unstable_lines'], reverse=True)
+    
+    return summary
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Analyze and report Delta-Debug results'
+    )
+    parser.add_argument('--results', required=True,
+                       help='Results directory or DD results JSON')
+    parser.add_argument('--output', required=True,
+                       help='Output directory for reports')
+    parser.add_argument('--formats', nargs='+',
+                       default=['json', 'markdown', 'html'],
+                       choices=['json', 'markdown', 'html'],
+                       help='Output formats')
+    
+    args = parser.parse_args()
+    
+    results_path = Path(args.results)
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Load DD results
+    if results_path.is_file():
+        dd_results_file = results_path
+    else:
+        dd_results_file = results_path / 'ddebug_results.json'
+    
+    if not dd_results_file.exists():
+        print(f"Error: DD results not found at {dd_results_file}")
+        sys.exit(1)
+    
+    with open(dd_results_file, 'r') as f:
+        dd_results = json.load(f)
+    
+    print(f"📊 Analyzing {len(dd_results['results'])} configuration(s)")
+    
+    # Generate reports
+    if 'json' in args.formats:
+        summary = generate_json_summary(dd_results)
+        json_path = output_dir / 'summary.json'
+        with open(json_path, 'w') as f:
+            json.dump(summary, f, indent=2)
+        print(f"   ✓ JSON summary: {json_path}")
+    
+    if 'markdown' in args.formats:
+        markdown = generate_markdown_report(results_path, dd_results)
+        md_path = output_dir / 'report.md'
+        with open(md_path, 'w') as f:
+            f.write(markdown)
+        print(f"   ✓ Markdown report: {md_path}")
+    
+    if 'html' in args.formats:
+        html = generate_html_report(results_path, dd_results)
+        html_path = output_dir / 'report.html'
+        with open(html_path, 'w') as f:
+            f.write(html)
+        print(f"   ✓ HTML report: {html_path}")
+    
+    print(f"\n✓ Analysis complete! Reports saved to: {output_dir}")
+
+
+if __name__ == '__main__':
+    main()
