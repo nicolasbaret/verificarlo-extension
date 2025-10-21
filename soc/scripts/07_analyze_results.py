@@ -176,193 +176,103 @@ def generate_html_report(results_dir: Path, dd_results: dict) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificarlo Analysis Report</title>
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-        
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #333;
         }}
         
-        .container {{
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+        h1 {{
+            border-bottom: 3px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
         }}
         
-        header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }}
-        
-        header h1 {{
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }}
-        
-        header .subtitle {{
-            opacity: 0.9;
-            font-size: 1.1em;
-        }}
-        
-        .content {{
-            padding: 40px;
+        h2 {{
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
         }}
         
         .stats-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
         }}
         
         .stat-card {{
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            padding: 20px;
         }}
         
         .stat-card h3 {{
-            color: #667eea;
             font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: normal;
         }}
         
         .stat-card .value {{
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
-            color: #2d3748;
-        }}
-        
-        section {{
-            margin-bottom: 40px;
-        }}
-        
-        section h2 {{
-            color: #2d3748;
-            border-left: 4px solid #667eea;
-            padding-left: 15px;
-            margin-bottom: 20px;
-            font-size: 1.8em;
         }}
         
         table {{
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid #ddd;
         }}
         
         th {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
+            background: #f5f5f5;
+            padding: 10px;
             text-align: left;
             font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85em;
-            letter-spacing: 0.5px;
+            border-bottom: 2px solid #ddd;
         }}
         
         td {{
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
         }}
         
         tr:hover {{
-            background: #f7fafc;
-        }}
-        
-        tr:last-child td {{
-            border-bottom: none;
-        }}
-        
-        .badge {{
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }}
-        
-        .badge-success {{
-            background: #c6f6d5;
-            color: #22543d;
-        }}
-        
-        .badge-warning {{
-            background: #feebc8;
-            color: #744210;
-        }}
-        
-        .badge-danger {{
-            background: #fed7d7;
-            color: #742a2a;
-        }}
-        
-        .badge-info {{
-            background: #bee3f8;
-            color: #2c5282;
+            background: #fafafa;
         }}
         
         .list-item {{
-            background: #f7fafc;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border-left: 3px solid #667eea;
-        }}
-        
-        .list-item strong {{
-            color: #667eea;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #333;
+            background: #f9f9f9;
         }}
         
         .empty-state {{
-            text-align: center;
-            padding: 40px;
-            color: #718096;
+            color: #999;
             font-style: italic;
+            padding: 20px;
+            text-align: center;
         }}
         
         footer {{
-            text-align: center;
-            padding: 20px;
-            color: #718096;
-            border-top: 1px solid #e2e8f0;
-            margin-top: 40px;
-        }}
-        
-        code {{
-            background: #2d3748;
-            color: #f7fafc;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
             font-size: 0.9em;
         }}
         
-        .checkmark {{
-            color: #48bb78;
-        }}
-        
-        .crossmark {{
-            color: #f56565;
+        code {{
+            background: #f5f5f5;
+            padding: 2px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
         }}
     </style>
 </head>

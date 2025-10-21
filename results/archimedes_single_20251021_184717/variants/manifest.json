@@ -1,0 +1,23 @@
+{
+  "original_source": "archimedes/archimedes.c",
+  "mode": "single",
+  "total_variants": 2,
+  "variants": [
+    {
+      "id": "variant_000",
+      "name": "baseline_all_double",
+      "modified_vars": [],
+      "source_path": "/workdir/results/archimedes_single_20251021_184717/variants/baseline_all_double/archimedes.c",
+      "variant_dir": "/workdir/results/archimedes_single_20251021_184717/variants/baseline_all_double"
+    },
+    {
+      "id": "variant_001",
+      "name": "fact_float",
+      "modified_vars": [
+        "fact"
+      ],
+      "source_path": "/workdir/results/archimedes_single_20251021_184717/variants/fact_float/archimedes.c",
+      "variant_dir": "/workdir/results/archimedes_single_20251021_184717/variants/fact_float"
+    }
+  ]
+}

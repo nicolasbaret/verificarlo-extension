@@ -33,6 +33,14 @@ def run_dd(dd_workspace: Path, backend_name: str, backend_config: str, timeout: 
             text=True,
             timeout=timeout
         )
+        # Exit code 42 = "nothing to debug" (stable code)
+        if result.returncode == 42:
+            return {
+                'backend': backend_name,
+                'success': True,
+                'unstable_lines': [],
+                'note': 'Stable - no issues detected'
+            }
         
         # DEBUG: Print output for first failure
         if result.returncode != 0:
@@ -101,7 +109,10 @@ def main():
             dd_results.append(result)
             
             if result['success']:
-                print(f"✓ ({len(result['unstable_lines'])} lines)")
+                if result.get('note'):
+                    print(f"✓ stable")
+                else:
+                    print(f"✓ ({len(result['unstable_lines'])} lines)")
             else:
                 print(f"✗")
         

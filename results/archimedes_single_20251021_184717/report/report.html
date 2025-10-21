@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificarlo Analysis Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            border-bottom: 3px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+        
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f5f5f5;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        .list-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #333;
+            background: #f9f9f9;
+        }
+        
+        .empty-state {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Verificarlo Analysis Report</h1>
+            <p class="subtitle">Floating-Point Stability Analysis</p>
+        </header>
+        
+        <div class="content">
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Configurations</h3>
+                    <div class="value">16</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Successful DD Runs</h3>
+                    <div class="value">48/48</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Backends Used</h3>
+                    <div class="value">3</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Stable Configurations</h3>
+                    <div class="value">0</div>
+                </div>
+            </div>
+            
+            <!-- Backends -->
+            <section>
+                <h2>Analysis Backends</h2>
+                <p><span class="badge badge-info">rr</span> <span class="badge badge-info">mca</span> <span class="badge badge-info">cancellation</span> </p>
+            </section>
+            
+            <!-- Problematic Variables -->
+            <section>
+                <h2>Most Problematic Variables</h2>
+                <div class="list-item">
+                    <strong>fact</strong>: 32 unstable configuration(s)
+                </div>
+            </section>
+            
+            <!-- Problematic Lines -->
+            <section>
+                <h2>Most Problematic Source Lines</h2>
+                <div class="list-item">
+                    Line <code>19</code>: 32 unstable detection(s)
+                </div>
+                <div class="list-item">
+                    Line <code>21</code>: 32 unstable detection(s)
+                </div>
+            </section>
+            
+            <!-- Detailed Results Table -->
+            <section>
+                <h2>Detailed Results</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Configuration</th>
+                                <th>Modified Variables</th>
+                                <th>Opt Level</th>
+                                <th>Fast-Math</th>
+                                <th>Backend</th>
+                                <th>Unstable Lines</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>baseline_all_double</code></td>
+                                <td><em>baseline</em></td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O0</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O1</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O2</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="crossmark">✗</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">rr</span></td>
+                                <td><span class="badge badge-warning">19</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">mca</span></td>
+                                <td><span class="badge badge-warning">19, 21</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>fact_float</code></td>
+                                <td>fact</td>
+                                <td><span class="badge badge-info">O3</span></td>
+                                <td class="checkmark">✓</td>
+                                <td><span class="badge badge-info">cancellation</span></td>
+                                <td><span class="badge badge-warning">21</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Stable Configurations -->
+            <section>
+                <h2>Stable Configurations</h2><div class="empty-state">No completely stable configurations found</div>
+            </section>
+            
+            <!-- Unstable Configurations -->
+            <section>
+                <h2>Most Unstable Configurations</h2>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>baseline_all_double</code> — all double (baseline): <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>fact_float</code> — fact: <strong>4</strong> total unstable line detections
+                </div>
+                <div class="list-item">
+                    <code>fact_float</code> — fact: <strong>4</strong> total unstable line detections
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>Generated by <strong>Verificarlo Analysis Framework</strong></p>
+            <p style="margin-top: 5px; font-size: 0.9em;">Results Directory: <code>/workdir/results/archimedes_single_20251021_184717</code></p>
+        </footer>
+    </div>
+</body>
+</html>

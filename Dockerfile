@@ -14,17 +14,6 @@ RUN apt-get update && apt-get install -y vim && rm -rf /var/lib/apt/lists/*
 # Set matplotlib to use non-interactive backend (for headless environment)
 ENV MPLBACKEND=Agg
 
-# # Copy our automation scripts into the container
-# COPY archimedes_analyzer.py /usr/local/bin/
-# COPY visualize_results.py /usr/local/bin/
-
-# Make scripts executable and ensure they use python3
-RUN chmod +x /usr/local/bin/archimedes_analyzer.py /usr/local/bin/visualize_results.py
-
-# # Create convenient aliases
-# RUN echo 'alias analyze="python3 /usr/local/bin/archimedes_analyzer.py"' >> /root/.bashrc && \
-#     echo 'alias visualize="python3 /usr/local/bin/visualize_results_new.py"' >> /root/.bashrc
-
 # Set working directory to where user files will be mounted
 WORKDIR /workdir
 

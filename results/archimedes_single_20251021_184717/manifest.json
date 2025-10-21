@@ -1,0 +1,56 @@
+{
+  "source_file": "archimedes/archimedes.c",
+  "function": "global",
+  "variables": [
+    {
+      "name": "ti",
+      "type": "double",
+      "line": 7,
+      "scope": "global",
+      "declaration": "double ti;"
+    },
+    {
+      "name": "tii",
+      "type": "double",
+      "line": 8,
+      "scope": "global",
+      "declaration": "double tii;"
+    },
+    {
+      "name": "fact",
+      "type": "double",
+      "line": 9,
+      "scope": "global",
+      "declaration": "double fact;"
+    },
+    {
+      "name": "res",
+      "type": "double",
+      "line": 10,
+      "scope": "global",
+      "declaration": "double res;"
+    },
+    {
+      "name": "s",
+      "type": "double",
+      "line": 19,
+      "scope": "global",
+      "declaration": "double s = sqrt(ti * ti + 1);"
+    },
+    {
+      "name": "pi",
+      "type": "double",
+      "line": 33,
+      "scope": "global",
+      "declaration": "double pi = archimedes(N);"
+    }
+  ],
+  "original_types": {
+    "ti": "double",
+    "tii": "double",
+    "fact": "double",
+    "res": "double",
+    "s": "double",
+    "pi": "double"
+  }
+}
