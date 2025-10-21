@@ -1,3 +1,0 @@
-#!/bin/bash
-OUTPUT_DIR=$1
-/workdir/results/archimedes_single_20251021_184717/binaries/fact_float/O3/fastmath/binary > $OUTPUT_DIR/res.dat 2>&1
