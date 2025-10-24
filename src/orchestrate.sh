@@ -57,7 +57,7 @@ fi
 # Setup
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$SCRIPT_DIR/scripts"
-OUTPUT_DIR="/workdir/results/$(basename $SOURCE_FILE .c)_${MODE}_$(date +%Y%m%d_%H%M%S)"
+OUTPUT_DIR="/workdir/results/$(basename $SOURCE_FILE .c)_${MODE}"
 
 mkdir -p "$OUTPUT_DIR"
 
