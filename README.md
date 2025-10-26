@@ -1,4 +1,4 @@
-# Verificarlo Analysis Framework — Quick Guide
+# Verificarlo Analysis Framework
 
 This repository contains an automated pipeline to analyze floating-point stability of C programs using Verificarlo and Delta-Debug.
 
