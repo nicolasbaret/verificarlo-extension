@@ -1,5 +1,5 @@
 #!/bin/bash
-# Simplified Verificarlo Analysis - Two modes only
+# Simplified Verificarlo Analysis - All modes supported
 
 set -e
 
@@ -17,15 +17,19 @@ log_step() { echo -e "${YELLOW}[STEP $1/7]${NC} $2"; }
 
 # Usage
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <source_file> -mode <single|all> [variable_name]"
+    echo "Usage: $0 <source_file> -mode <single|all|pairs|single_and_pairs> [variable_name]"
     echo ""
     echo "Modes:"
-    echo "  single <var>  - Test single variable with all opt levels + fastmath variations"
-    echo "  all           - Test all variables individually with all opt levels + fastmath"
+    echo "  single <var>       - Test single variable with all opt levels + fastmath variations"
+    echo "  all                - Test all variables individually with all opt levels + fastmath"
+    echo "  pairs              - Test all combinations of 2 variables with all opt levels + fastmath"
+    echo "  single_and_pairs   - Test all singles AND all pairs with all opt levels + fastmath"
     echo ""
     echo "Examples:"
     echo "  $0 archimedes.c -mode single ti"
     echo "  $0 archimedes.c -mode all"
+    echo "  $0 archimedes.c -mode pairs"
+    echo "  $0 archimedes.c -mode single_and_pairs"
     exit 1
 fi
 
@@ -39,8 +43,8 @@ if [ "$MODE_FLAG" != "-mode" ]; then
     exit 1
 fi
 
-if [ "$MODE" != "single" ] && [ "$MODE" != "all" ]; then
-    log_error "Mode must be 'single' or 'all'"
+if [ "$MODE" != "single" ] && [ "$MODE" != "all" ] && [ "$MODE" != "pairs" ] && [ "$MODE" != "single_and_pairs" ]; then
+    log_error "Mode must be 'single', 'all', 'pairs', or 'single_and_pairs'"
     exit 1
 fi
 
@@ -58,6 +62,9 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$SCRIPT_DIR/scripts"
 OUTPUT_DIR="/workdir/results/$(basename $SOURCE_FILE .c)_${MODE}"
+if [ "$MODE" = "single" ]; then
+    OUTPUT_DIR="${OUTPUT_DIR}_${VARIABLE}"
+fi
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -81,18 +88,33 @@ echo ""
 
 # Step 2: Generate variants
 log_step 2 "Generating variants..."
-if [ "$MODE" = "single" ]; then
-    python3 "$SCRIPTS_DIR/02_generate_variants.py" \
-        --manifest "$OUTPUT_DIR/manifest.json" \
-        --mode single \
-        --variable "$VARIABLE" \
-        --output "$OUTPUT_DIR/variants"
-else
-    python3 "$SCRIPTS_DIR/02_generate_variants.py" \
-        --manifest "$OUTPUT_DIR/manifest.json" \
-        --mode all \
-        --output "$OUTPUT_DIR/variants"
-fi
+case "$MODE" in
+    single)
+        python3 "$SCRIPTS_DIR/02_generate_variants.py" \
+            --manifest "$OUTPUT_DIR/manifest.json" \
+            --mode single \
+            --variable "$VARIABLE" \
+            --output "$OUTPUT_DIR/variants"
+        ;;
+    all)
+        python3 "$SCRIPTS_DIR/02_generate_variants.py" \
+            --manifest "$OUTPUT_DIR/manifest.json" \
+            --mode all \
+            --output "$OUTPUT_DIR/variants"
+        ;;
+    pairs)
+        python3 "$SCRIPTS_DIR/02_generate_variants.py" \
+            --manifest "$OUTPUT_DIR/manifest.json" \
+            --mode pairs \
+            --output "$OUTPUT_DIR/variants"
+        ;;
+    single_and_pairs)
+        python3 "$SCRIPTS_DIR/02_generate_variants.py" \
+            --manifest "$OUTPUT_DIR/manifest.json" \
+            --mode single_and_pairs \
+            --output "$OUTPUT_DIR/variants"
+        ;;
+esac
 [ $? -ne 0 ] && log_error "Step 2 failed" && exit 1
 log_success "Variants generated"
 echo ""

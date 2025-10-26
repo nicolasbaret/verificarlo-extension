@@ -8,16 +8,40 @@ import argparse
 import json
 from pathlib import Path
 import sys
+from itertools import combinations
 
 sys.path.insert(0, str(Path(__file__).parent))
 from utils.source_parser import CSourceParser, SourceModifier
 
 
+def generate_configs(all_variables, type):
+    """Generate vars based on single or all combos arg
+    
+    Args:
+        all_variables: List of variable names
+    
+    Returns:
+        List of tuples: (config_name, [vars_to_modify])
+    """
+    configs = [('baseline_all_double', [])]
+    if type == "both":
+        # Add all single variables
+        for var in all_variables:
+            configs.append((f'{var}_float', [var]))
+    if type == "pairs" or type == "both":
+        # Add all pairs
+        for var1, var2 in combinations(all_variables, 2):
+            config_name = f'{var1}_{var2}_float'
+            configs.append((config_name, [var1, var2]))
+    
+    return configs
+
+
 def main():
     parser = argparse.ArgumentParser(description='Generate source variants')
     parser.add_argument('--manifest', required=True, help='Manifest from step 1')
-    parser.add_argument('--mode', required=True, choices=['single', 'all'],
-                       help='single: one variable | all: all variables')
+    parser.add_argument('--mode', required=True, choices=['single', 'all', 'pairs', 'single_and_pairs'],
+                       help='single: one variable | all-single: all single variables | pairs: all pairs of variables | single_and_pairs: all single + all pairs')
     parser.add_argument('--variable', help='Variable name (required for single mode)')
     parser.add_argument('--output', required=True, help='Output directory')
     
@@ -50,7 +74,16 @@ def main():
             (f'{args.variable}_float', [args.variable])
         ]
         print(f"📦 Single variable mode: {args.variable}")
-    else:
+    elif args.mode == 'pairs':
+        configs = generate_configs(all_variables, "pairs")
+        num_pairs = len(configs) - 1  # Subtract baseline
+        print(f"📦 Pairs mode: {num_pairs} pairs from {len(all_variables)} variables")
+    elif args.mode == 'single_and_pairs':
+        configs = generate_configs(all_variables, "both")
+        num_singles = len(all_variables)
+        num_pairs = len(all_variables) * (len(all_variables) - 1) // 2
+        print(f"📦 Single + Pairs mode: {num_singles} singles + {num_pairs} pairs from {len(all_variables)} variables")
+    else:  # args.mode == 'all'
         configs = [('baseline_all_double', [])]
         for var in all_variables:
             configs.append((f'{var}_float', [var]))
