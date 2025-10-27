@@ -551,47 +551,47 @@ def generate_html_report(results_dir: Path, dd_results: dict, validation_data: d
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </section>"""
 
-            <!-- Stable Configurations -->
-            <section>
-                <h2>Stable Configurations</h2>"""
+    #         <!-- Stable Configurations -->
+    #         <section>
+    #             <h2>Stable Configurations</h2>"""
 
-    if stable_configs:
-        html += f'<p>Found {len(stable_configs)} stable configuration(s):</p>'
-        for config in stable_configs[:10]:
-            vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
-            html += f"""
-                <div class="list-item">
-                    <code>{config['variant_name']}</code> — {vars_str}
-                </div>"""
-        if len(stable_configs) > 10:
-            html += f'<p><em>... and {len(stable_configs) - 10} more</em></p>'
-    else:
-        html += '<div class="empty-state">No completely stable configurations found</div>'
+    # if stable_configs:
+    #     html += f'<p>Found {len(stable_configs)} stable configuration(s):</p>'
+    #     for config in stable_configs[:10]:
+    #         vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+    #         html += f"""
+    #             <div class="list-item">
+    #                 <code>{config['variant_name']}</code> — {vars_str}
+    #             </div>"""
+    #     if len(stable_configs) > 10:
+    #         html += f'<p><em>... and {len(stable_configs) - 10} more</em></p>'
+    # else:
+    #     html += '<div class="empty-state">No completely stable configurations found</div>'
 
-    html += """
-            </section>
+    # html += """
+    #         </section>
 
-            <!-- Unstable Configurations -->
-            <section>
-                <h2>Most Unstable Configurations</h2>"""
+    #         <!-- Unstable Configurations -->
+    #         <section>
+    #             <h2>Most Unstable Configurations</h2>"""
 
-    unstable_with_issues = [
-        (config, sum(len(dr.get('unstable_lines', [])) for dr in config['dd_results']))
-        for config in unstable_configs
-    ]
-    unstable_with_issues = [(c, count) for c, count in unstable_with_issues if count > 0]
+    # unstable_with_issues = [
+    #     (config, sum(len(dr.get('unstable_lines', [])) for dr in config['dd_results']))
+    #     for config in unstable_configs
+    # ]
+    # unstable_with_issues = [(c, count) for c, count in unstable_with_issues if count > 0]
 
-    if unstable_with_issues:
-        for config, total_lines in unstable_with_issues[:10]:
-            vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
-            html += f"""
-                <div class="list-item">
-                    <code>{config['variant_name']}</code> — {vars_str}: <strong>{total_lines}</strong> total unstable line detections
-                </div>"""
-    else:
-        html += '<div class="empty-state">✓ No unstable configurations detected</div>'
+    # if unstable_with_issues:
+    #     for config, total_lines in unstable_with_issues[:10]:
+    #         vars_str = ', '.join(config['modified_vars']) or 'all double (baseline)'
+    #         html += f"""
+    #             <div class="list-item">
+    #                 <code>{config['variant_name']}</code> — {vars_str}: <strong>{total_lines}</strong> total unstable line detections
+    #             </div>"""
+    # else:
+    #     html += '<div class="empty-state">✓ No unstable configurations detected</div>'
 
     html += f"""
             </section>
