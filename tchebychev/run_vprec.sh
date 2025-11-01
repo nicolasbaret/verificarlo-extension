@@ -37,10 +37,11 @@ verificarlo -D ${REAL} tchebychev.c -o tchebychev
 #   - i: sample number
 #   - x: input value
 #   - T: polynomial evaluation on x, T(x)
-export VFC_BACKENDS="libinterflop_vprec.so $VPREC_PRESET"
+# export VFC_BACKENDS="libinterflop_vprec.so $VPREC_PRESET"
+export VFC_BACKENDS="libinterflop_vprec.so --preset=$VPREC_PRESET"
 
 echo "i x t" > ${METHOD}-${REAL}.tab
-for x in $(seq 0.0 0.01 1.0); do
+for x in $(seq 0.5 0.001 1.0); do
     # Since VPREC is a deterministic backend only a single run is needed
     echo 1 $(./tchebychev $x $METHOD) >> ${METHOD}-${REAL}.tab
 done
