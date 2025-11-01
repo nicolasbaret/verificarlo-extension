@@ -54,7 +54,7 @@ export VFC_BACKENDS="libinterflop_mca.so --precision-binary32=$VERIFICARLO_PRECI
 
 
 echo "i x t" > ${METHOD}-${REAL}.tab
-for x in $(seq 0.0 0.01 1.0); do
+for x in $(seq 0.5 0.001 1.0); do
     for i in $(seq 1 20); do
       echo $i $(./tchebychev $x $METHOD) >> ${METHOD}-${REAL}.tab
     done
