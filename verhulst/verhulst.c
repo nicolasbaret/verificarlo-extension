@@ -1,48 +1,31 @@
-/* Verificarlo Tutorial: Verhulst Population Growth Model */
-
-#include <assert.h>
-#include <float.h>
+// verhulst_range.c - Version that tests full range
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <vfc_probes.h>
 
-/* Define real type and format string */
-#ifdef DOUBLE
 #define REAL double
-#define FMT "%.16e %.16e"
-#else
-#define REAL float
-#define FMT "%.7e %.7e"
-#endif
-
-REAL verhulst(REAL x);
-
-/* Usage function to explain program arguments */
-void usage() {
-    fprintf(stderr, "Usage: ./verhulst <x>\n");
-    fprintf(stderr, "x: initial population value\n");
-    exit(EXIT_FAILURE);
-}
 
 REAL verhulst(REAL x) {
     REAL r = 4.0; 
     REAL K = 1.1; 
-    REAL numer = r * x; 
-    REAL denom = 1.0 + (x / K); 
-    REAL result = numer / denom;
-    return result;
+    return (r * x) / (1.0 + (x / K));
 }
 
-/* Main function */
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        usage();
+int main() {
+    vfc_probes probes = vfc_init_probes();
+    
+    // Test range from -1.0 to 1.0
+    for (double x = -1.0; x <= 1.0; x += 0.1) {
+        REAL result = verhulst(x);
+        
+        char probe_name[64];
+        snprintf(probe_name, sizeof(probe_name), "x_%.1f", x);
+        
+        // Just monitor - no threshold checking
+        vfc_probe(&probes, "verhulst_range", probe_name, result);
+        
+        printf("%.2f %.16e\n", x, result);
     }
     
-    REAL x = atof(argv[1]);
-    REAL result = verhulst(x);
-    
-    printf(FMT "\n", x, result);
-    
-    return EXIT_SUCCESS;
+    vfc_dump_probes(&probes);
+    return 0;
 }

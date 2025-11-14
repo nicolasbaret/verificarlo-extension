@@ -1,71 +1,71 @@
 #!/bin/bash
 # Start Verificarlo Analysis Container
 # This script launches the custom verificarlo container with your current directory mounted
-
 set -e
-
 IMAGE_NAME="verificarlo-analysis"
 CONTAINER_NAME="verificarlo-analysis-session"
-
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║        Verificarlo Analysis Container Launcher             ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
-
 # Check if image exists
 if ! docker image inspect $IMAGE_NAME >/dev/null 2>&1; then
-    echo "⚠️  Image '$IMAGE_NAME' not found."
-    echo "📦 Building the image first..."
-    echo ""
-    
-    # Check if Dockerfile exists
-    if [ ! -f "Dockerfile" ]; then
-        echo "❌ Error: Dockerfile not found in current directory!"
-        echo "   Please ensure Dockerfile, archimedes_analyzer.py, and visualize_results.py are present."
-        exit 1
-    fi
-    
-    # Build the image
-    docker build -t $IMAGE_NAME .
-    
-    if [ $? -eq 0 ]; then
-        echo ""
-        echo "✅ Image built successfully!"
-        echo ""
-    else
-        echo "❌ Image build failed!"
-        exit 1
-    fi
+echo "⚠️  Image '$IMAGE_NAME' not found."
+echo "📦 Building the image first..."
+echo ""
+# Check if Dockerfile exists
+if [ ! -f "Dockerfile" ]; then
+echo "❌ Error: Dockerfile not found in current directory!"
+echo "   Please ensure Dockerfile, archimedes_analyzer.py, and visualize_results.py are present."
+exit 1
 fi
-
+# Build the image
+docker build -t $IMAGE_NAME .
+if [ $? -eq 0 ]; then
+echo ""
+echo "✅ Image built successfully!"
+echo ""
+else
+echo "❌ Image build failed!"
+exit 1
+fi
+fi
 # Remove any existing container with the same name
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo "🧹 Removing existing container..."
-    docker rm -f $CONTAINER_NAME >/dev/null 2>&1
+echo "🧹 Removing existing container..."
+docker rm -f $CONTAINER_NAME >/dev/null 2>&1
 fi
-
 echo "🚀 Starting container..."
 echo "📁 Mounting current directory: $(pwd)"
+echo "🌐 Port mappings:"
+echo "   - 8080:8080 (vfc_ci default)"
+echo "   - 8888:8888 (alternative)"
+echo "   - 9000:9000 (alternative)"
+echo "   - 5000:5000 (alternative)"
 echo ""
 echo "   Inside the container, your files will be at: /workdir"
 echo "   Results will be saved to: $(pwd)/analysis_results"
 echo ""
+echo "   To view vfc_ci report, run inside container:"
+echo "   vfc_ci serve -p 8080"
+echo "   Then open: http://localhost:8080/vfc_ci_report"
+echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-
 # Run the container interactively
 # -v mounts current directory to /workdir
 # -it gives interactive terminal
 # --rm removes container on exit
 # --name gives it a recognizable name
-
+# -p maps ports from container to host
 docker run \
-    -v "$(pwd)":/workdir \
-    -it \
-    --rm \
-    --name $CONTAINER_NAME \
-    $IMAGE_NAME
-
+-v "$(pwd)":/workdir \
+-p 8888:8888 \
+-p 9000:9000 \
+-it \
+--rm \
+--name $CONTAINER_NAME \
+$IMAGE_NAME
 echo ""
 echo "👋 Container session ended."
 echo "   Results (if any) are saved in: $(pwd)/analysis_results"

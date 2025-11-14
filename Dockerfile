@@ -6,7 +6,14 @@ RUN pip3 install --no-cache-dir \
     matplotlib \
     seaborn \
     pandas \
-    numpy
+    numpy \
+    h5py \
+    tables
+
+# Fix Bokeh compatibility for vfc_ci
+# The vfc_ci report requires Bokeh 2.x, not 3.x
+RUN pip3 uninstall -y bokeh && \
+    pip3 install 'bokeh==2.4.3' 'tornado>=5.0,<7.0'
 
 # Install Vim for text editing
 RUN apt-get update && apt-get install -y vim && rm -rf /var/lib/apt/lists/*
@@ -23,6 +30,10 @@ CMD ["/bin/bash"]
 # Add helpful message when container starts
 RUN echo 'echo "╔════════════════════════════════════════════════════════════╗"' >> /root/.bashrc && \
     echo 'echo "║     Verificarlo Analysis Framework - Enhanced              ║"' >> /root/.bashrc && \
+    echo 'echo "║                                                            ║"' >> /root/.bashrc && \
+    echo 'echo "║ VFC_CI COMMANDS:                                           ║"' >> /root/.bashrc && \
+    echo 'echo "║  vfc_ci test         - Run tests                           ║"' >> /root/.bashrc && \
+    echo 'echo "║  vfc_ci serve -p 8080 - View report on http://localhost:8080 ║"' >> /root/.bashrc && \
     echo 'echo "║                                                            ║"' >> /root/.bashrc && \
     echo 'echo "║ QUICK START:                                               ║"' >> /root/.bashrc && \
     echo 'echo "║  orchestrate.sh <file.c> -mode single <var>                ║"' >> /root/.bashrc && \
