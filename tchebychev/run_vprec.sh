@@ -13,6 +13,7 @@ fi
 
 METHOD=$1
 VPREC_PRESET=$2
+VPREC_CUSTOM_PRECISION=$3
 REAL="DOUBLE"
 
 # Check method
@@ -38,7 +39,7 @@ verificarlo -D ${REAL} tchebychev.c -o tchebychev
 #   - x: input value
 #   - T: polynomial evaluation on x, T(x)
 # export VFC_BACKENDS="libinterflop_vprec.so $VPREC_PRESET"
-export VFC_BACKENDS="libinterflop_vprec.so --preset=$VPREC_PRESET"
+export VFC_BACKENDS="libinterflop_vprec.so --preset=$VPREC_PRESET  --precision-binary64=$VPREC_CUSTOM_PRECISION"
 
 echo "i x t" > ${METHOD}-${REAL}.tab
 for x in $(seq 0.5 0.001 1.0); do

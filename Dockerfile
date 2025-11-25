@@ -31,9 +31,6 @@ CMD ["/bin/bash"]
 RUN echo 'echo "╔════════════════════════════════════════════════════════════╗"' >> /root/.bashrc && \
     echo 'echo "║     Verificarlo Analysis Framework - Enhanced              ║"' >> /root/.bashrc && \
     echo 'echo "║                                                            ║"' >> /root/.bashrc && \
-    echo 'echo "║ VFC_CI COMMANDS:                                           ║"' >> /root/.bashrc && \
-    echo 'echo "║  vfc_ci test         - Run tests                           ║"' >> /root/.bashrc && \
-    echo 'echo "║  vfc_ci serve -p 8080 - View report on http://localhost:8080 ║"' >> /root/.bashrc && \
     echo 'echo "║                                                            ║"' >> /root/.bashrc && \
     echo 'echo "║ QUICK START:                                               ║"' >> /root/.bashrc && \
     echo 'echo "║  orchestrate.sh <file.c> -mode single <var>                ║"' >> /root/.bashrc && \

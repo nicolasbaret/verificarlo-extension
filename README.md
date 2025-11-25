@@ -24,12 +24,13 @@ Key utility modules
 - [src/scripts/utils/compiler.py](src/scripts/utils/compiler.py) — compilation wrappers (`CompilationConfig`, `CompilationResult`, `VerificarloCompiler`)
 - [src/scripts/utils/dd_parser.py](src/scripts/utils/dd_parser.py) — parse Delta-Debug outputs (`DDLineResult`, `DeltaDebugParser`)
 
-Quick start (recommended)
+Quick start 
 1. Clone the repository.
-2. Build the analysis image (run from repo root):
+2. Start the Docker Daemon
+3. Build the analysis image (run from repo root):
    - ./build_image.sh
    - (build uses: [Dockerfile](Dockerfile)) - you need to have the Docker Daemon running 
-3. Start the container (will mount current directory into `/workdir`):
+4. Start the container (will mount current directory into `/workdir`):
    - ./start_analysis_container.sh
    - (this runs the image created by `build_image.sh`)
 
@@ -38,6 +39,7 @@ Run the pipeline
   - Inside the container: 
     - ./src/orchestrate.sh <source_file.c> -mode single <var>
     - ./src/orchestrate.sh <source_file.c> -mode all
+    - ./orchestrate.sh (this will show the possible options)
   - Orchestrator delegates to step scripts in [src/scripts/](src/scripts/)
 
 Run individual steps (examples)
@@ -61,8 +63,8 @@ Viewing reports outside the container
 - Reports are written to the host-mounted results directory (example: ./results/<analysis>/report).
 - To quickly view the HTML report with a simple Python server outside the container:
   - cd results/<analysis>/report
-  - python3 -m http.server 8000
-  - Open http://localhost:8000/report.html
+  - python3 -m http.server port (port should be replaced with the port you want to serve it to)
+  - Open http://localhost:port/report.html
 
 Cleaning results
 - Use [clean_results.sh](clean_results.sh) to remove results directories interactively.

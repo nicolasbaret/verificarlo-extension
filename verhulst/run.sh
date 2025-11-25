@@ -6,7 +6,7 @@ export LC_ALL=C
 
 # Check all arguments
 if [ "$#" -ne 3 ]; then
-  echo "usage: run_verhulst.sh [FLOAT | DOUBLE] vprecision mode"
+  echo "usage: run_verhulst.sh [FLOAT | DOUBLE] --precision-binary64=<number> mode"
   echo "      vprecision is the MCA Virtual Precision (a positive integer)"
   echo "      mode is MCA Mode, one of [ mca | pb | rr ]"
   exit 1

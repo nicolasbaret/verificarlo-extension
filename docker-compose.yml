@@ -1,0 +1,15 @@
+services:
+  verificarlo:
+    image: verificarlo-analysis
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workdir
+    working_dir: /workdir
+    ports:
+      - "8888:8888"
+      - "9000:9000"
+    stdin_open: true
+    tty: true
+    command: /bin/bash
